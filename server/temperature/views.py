@@ -1,3 +1,11 @@
-from django.shortcuts import render
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
-# Create your views here.
+def test_endpoint(request):
+    return JsonResponse({ 
+        "status": 200, 
+        "msg": "Endpoint hit. Now go work on the temperature!"
+    })
+
+def receive_temperature(request):
+    pass
