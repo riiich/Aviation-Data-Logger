@@ -3,6 +3,7 @@
 #include <ArduinoJson.h>
 #include <DHT11.h>
 #include "secrets.h"
+#include "DataSimulator.h"
 
 // hardware variables
 const int ledPin = 27;
