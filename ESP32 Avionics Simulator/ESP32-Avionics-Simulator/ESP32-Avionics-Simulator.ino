@@ -1,9 +1,12 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <ArduinoWebsockets.h>
 #include <ArduinoJson.h>
 #include <DHT11.h>
 #include "secrets.h"
 #include "DataSimulator.h"
+
+using namespace websockets;
 
 // hardware variables
 const int ledPin = 27;
@@ -15,14 +18,21 @@ int humidityLevel = 0;
 
 int tempToLightLED = 0;
 
+// websocket
+WebsocketsClient wsClient;
+
 // JSON variable
 String getPayload = "";
 String postPayload = "";
 
-// String serverURL = SERVER_URL;
+// avionic data
+float acceleration = 0.1;
+float altitude = 0;
+float speed = 0;
+float temperature;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   pinMode(ledPin, OUTPUT); 
   // pinMode(buttonPin, INPUT_PULLUP);
 
@@ -34,22 +44,106 @@ void setup() {
 
   // waiting for wifi connection
   while(WiFi.status() != WL_CONNECTED) {
-    delay(500);
+    delay(1500);
     Serial.println("Attempting to connect to wifi...");
-  }
+  } 
 
   // wifi connected
   Serial.println("Connected to wifi! =)");
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
+
+  // websocket callbacks
+  wsClient.onMessage(onMessageCallback);
+  wsClient.onEvent(onEventsCallback);
+  
+  bool wsConnectionStatus = wsClient.connect(WEBSOCKET_URL);
+
+  if(wsConnectionStatus) {
+    Serial.println("Websocket connection established!");
+    // wsClient.send(postData);
+    wsClient.ping();
+  }
+  else {
+    Serial.println("Error establishing a websocket connection...");
+  }
+
 }
 
 void loop() {
-  getTemperature();
+  acceleration = simulateAcceleration();
+  altitude = simulateAltitude();
+  speed = simulateSpeed();
 
-  makePOSTRequest();
+  Serial.print("Acceleration: ");
+  Serial.print(acceleration);
+  Serial.println(" m/s^2");
 
-  delay(2000);
+  Serial.print("Altitude: ");
+  Serial.print(altitude);
+  Serial.println(" m");
+
+  Serial.print("Speed: ");
+  Serial.print(speed);
+  Serial.println(" m/s");
+  Serial.println();
+
+  // static unsigned long recentTime = 0;
+
+  // if(millis() - recentTime >= 1000) {
+  //   sendSensorData();
+  //   recentTime = millis();
+  // }
+
+  if (wsClient.available()) {
+        DynamicJsonDocument doc(256); // Adjust size as needed
+
+        doc["acceleration"] = acceleration;
+        doc["altitude"] = altitude;
+        doc["speed"] = speed;
+        doc["msg"] = "From ESP32!";
+        
+        String jsonString;
+        serializeJson(doc, jsonString);
+
+        wsClient.send(jsonString);
+    }
+
+  wsClient.poll();
+
+  delay(1000);
+}
+
+void onMessageCallback(WebsocketsMessage message) {
+    Serial.print("Got Message: ");
+    Serial.println(message.data());
+}
+
+void onEventsCallback(WebsocketsEvent event, String data) {
+    if(event == WebsocketsEvent::ConnectionOpened) {
+        Serial.println("Connnection Opened");
+
+        sendSensorData();
+
+        Serial.print("Sent: ");
+    } else if(event == WebsocketsEvent::ConnectionClosed) {
+        Serial.println("Connnection Closed");
+    } else if(event == WebsocketsEvent::GotPing) {
+        Serial.println("Got a Ping!");
+    } else if(event == WebsocketsEvent::GotPong) {
+        Serial.println("Got a Pong!");
+    }
+}
+
+void sendSensorData() {
+    DynamicJsonDocument doc(256); // Adjust size as needed
+
+    doc["fahrenheit"] = temperatureFahrenheight;
+    doc["celsius"] = temperatureCelsius;
+    doc["msg"] = "From ESP32!";
+    String jsonString;
+    serializeJson(doc, jsonString);
+    Serial.println(jsonString);
 }
 
 void getTemperature() {
@@ -142,6 +236,7 @@ void makePOSTRequest() {
       httpClient.addHeader("Content-Type", "application/json");
       httpClient.addHeader("User-Agent", "ESP32");
 
+      // serialized json data to send to server
       String postData = "{\"fahrenheit\":" + String(temperatureFahrenheight) + ", \"celsius\":" + String(temperatureCelsius) + "}";
 
       int httpCode = httpClient.POST(postData);
