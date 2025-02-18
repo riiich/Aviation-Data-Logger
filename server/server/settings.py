@@ -18,7 +18,6 @@ DEBUG = True
 # ALLOWED_HOSTS = ["192.168.1.172", "localhost", "127.0.0.1"]
 ALLOWED_HOSTS = ["*"]
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -61,6 +60,18 @@ TEMPLATES = [
         },
     },
 ]
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+
+        #### HAVE TO INSTALL WSL2 (rmb to go into BIOS to enable virtualization in order to do it)
+        # "BACKEND": "channels_redis.core.RedisChannelLayer",
+        # "CONFIG": {
+        #     "hosts": [("127.0.0.1", 6379)]
+        # }
+    }
+}
 
 # WSGI_APPLICATION = "server.wsgi.application"
 

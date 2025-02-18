@@ -12,10 +12,6 @@ using namespace websockets;
 const int ledPin = 27;
 DHT11 dht11(33);  // dht11 sensor connected to GIO25
 
-int temperatureCelsius = 0;
-int temperatureFahrenheight = 0;
-int humidityLevel = 0;
-
 int tempToLightLED = 0;
 
 // websocket
@@ -25,11 +21,12 @@ WebsocketsClient wsClient;
 String getPayload = "";
 String postPayload = "";
 
-// avionic data
-float acceleration = 0.1;
-float altitude = 0;
-float speed = 0;
-float temperature;
+// data simulator
+DataSimulator simulateAviationData(millis());
+float acceleration = 0.0;
+float altitude = 0.0;
+float speed = 0.0;
+int temperature = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -68,45 +65,42 @@ void setup() {
     Serial.println("Error establishing a websocket connection...");
   }
 
+  Serial.setDebugOutput(true);
+
 }
 
 void loop() {
-  acceleration = simulateAcceleration();
-  altitude = simulateAltitude();
-  speed = simulateSpeed();
+  acceleration = simulateAviationData.simulateAcceleration(millis());
+  altitude = simulateAviationData.simulateAltitude(millis());
+  speed = simulateAviationData.simulateSpeed(millis());
 
   Serial.print("Acceleration: ");
   Serial.print(acceleration);
-  Serial.println(" m/s^2");
+  Serial.println(" km/h/s");
 
   Serial.print("Altitude: ");
   Serial.print(altitude);
-  Serial.println(" m");
+  Serial.println(" ft");
 
   Serial.print("Speed: ");
   Serial.print(speed);
-  Serial.println(" m/s");
+  Serial.println(" km/hr");
   Serial.println();
 
-  // static unsigned long recentTime = 0;
-
-  // if(millis() - recentTime >= 1000) {
-  //   sendSensorData();
-  //   recentTime = millis();
-  // }
-
   if (wsClient.available()) {
-        DynamicJsonDocument doc(256); // Adjust size as needed
+        DynamicJsonDocument doc(100); // Adjust size as needed
 
         doc["acceleration"] = acceleration;
         doc["altitude"] = altitude;
         doc["speed"] = speed;
-        doc["msg"] = "From ESP32!";
+        doc["type"] = "sensor_data";
+        doc["source"] = "esp32";
+        doc["message"] = "From ESP32!";
         
-        String jsonString;
-        serializeJson(doc, jsonString);
+        char jsonBuffer[256];
+        serializeJson(doc, jsonBuffer);
 
-        wsClient.send(jsonString);
+        wsClient.send(jsonBuffer);
     }
 
   wsClient.poll();
@@ -115,7 +109,7 @@ void loop() {
 }
 
 void onMessageCallback(WebsocketsMessage message) {
-    Serial.print("Got Message: ");
+    Serial.print("Response from server: ");
     Serial.println(message.data());
 }
 
@@ -123,7 +117,7 @@ void onEventsCallback(WebsocketsEvent event, String data) {
     if(event == WebsocketsEvent::ConnectionOpened) {
         Serial.println("Connnection Opened");
 
-        sendSensorData();
+        // sendSensorData();
 
         Serial.print("Sent: ");
     } else if(event == WebsocketsEvent::ConnectionClosed) {
@@ -135,17 +129,23 @@ void onEventsCallback(WebsocketsEvent event, String data) {
     }
 }
 
-void sendSensorData() {
-    DynamicJsonDocument doc(256); // Adjust size as needed
 
-    doc["fahrenheit"] = temperatureFahrenheight;
-    doc["celsius"] = temperatureCelsius;
-    doc["msg"] = "From ESP32!";
+void sendSensorData() {
+    DynamicJsonDocument doc(60); // Adjust size as needed
+
+    doc["acceleration"] = acceleration;
+    doc["altitude"] = altitude;
+    doc["speed"] = speed;
+    doc["temperature"] = temperature;
+    doc["message"] = "From ESP32!";
+
     String jsonString;
-    serializeJson(doc, jsonString);
+    // serializeJson(doc, jsonString);
+
     Serial.println(jsonString);
 }
 
+/*
 void getTemperature() {
   temperatureCelsius = dht11.readTemperature();
   humidityLevel = dht11.readHumidity();
@@ -265,3 +265,4 @@ void makePOSTRequest() {
 int celsiusToFahrenheit(int celsius) {
   return (celsius * (9/5)) + 32;
 }
+*/
