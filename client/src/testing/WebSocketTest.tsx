@@ -2,8 +2,15 @@ import { useState, useEffect } from "react";
 
 const WebSocketTest = () => {
 	const [message, setMessage] = useState("");
-	const [wsData, setWSData] = useState(null);
 	const [socket, setSocket] = useState<WebSocket | null>(null);
+	const [sensorData, setSensorData] = useState({
+		acceleration: 0,
+		altitude: 0,
+		speed: 0,
+		temperature: 0,
+		source: "",
+		vehicleHealth: "",
+	});
 
 	useEffect(() => {
 		const ws = new WebSocket("ws://localhost:8000/ws/aviation-logger/");
@@ -23,8 +30,14 @@ const WebSocketTest = () => {
 			try {
 				const data = JSON.parse(event.data);
 				console.log("Message from server:", data);
-				setMessage(data.msg);
-				// setWSData(data);
+				setMessage(data.message);
+				setSensorData({
+					...sensorData,
+					acceleration: data.acceleration,
+					altitude: data.altitude,
+					speed: data.speed,
+					source: data.source,
+				})
 			} catch (error) {
 				console.error("Error parsing message:", error);
 			}
@@ -50,7 +63,6 @@ const WebSocketTest = () => {
 		<div className="text-center m-10">
 			<h1 className="text-4xl font-medium">WebSocketTest</h1>
 
-			{/* <p className="m-5">{message.length >= 0 ? message : "Nothing"}</p> */}
 			<p className="m-5">{message}</p>
 		</div>
 	);

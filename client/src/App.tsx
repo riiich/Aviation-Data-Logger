@@ -13,7 +13,7 @@ function App() {
 					<Route path="/data" element={<Data />} />
 				</Routes>
 			</Router>
-			<WebSocketTest />
+			{/* <WebSocketTest /> */}
 		</>
 	);
 }
