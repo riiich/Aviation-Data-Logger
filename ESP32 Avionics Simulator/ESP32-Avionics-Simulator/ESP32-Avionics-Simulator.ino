@@ -87,8 +87,9 @@ void loop() {
   Serial.println(" km/hr");
   Serial.println();
 
+  // send sensor data to server
   if (wsClient.available()) {
-        DynamicJsonDocument doc(100); // Adjust size as needed
+        DynamicJsonDocument doc(100); 
 
         doc["acceleration"] = acceleration;
         doc["altitude"] = altitude;

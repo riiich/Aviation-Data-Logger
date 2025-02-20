@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Card from "../components/Card";
 import Chart from "../components/Chart";
+import Map from "../components/Map";
 
 const Data = () => {
 	const [message, setMessage] = useState("");
@@ -10,6 +11,10 @@ const Data = () => {
 		altitude: 0,
 		speed: 0,
 		temperature: 0,
+		coordinates: {
+			latitude: 34.074284, 
+			longitude: -118.217839,
+		},
 		source: "",
 		vehicleHealth: "",
 	});
@@ -31,7 +36,7 @@ const Data = () => {
 		ws.onmessage = (event) => {
 			try {
 				const data = JSON.parse(event.data);
-				console.log("Message from server:", data);
+				// console.log("Message from server:", data);
 				setMessage(data.message);
 				setSensorData({
 					...sensorData,
@@ -39,7 +44,7 @@ const Data = () => {
 					altitude: data.altitude,
 					speed: data.speed,
 					source: data.source,
-				})
+				});
 			} catch (error) {
 				console.error("Error parsing message:", error);
 			}
@@ -61,6 +66,19 @@ const Data = () => {
 		};
 	}, []);
 
+	const getLocation = async () => {
+		try {
+			const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${sensorData.coordinates.latitude},${sensorData.coordinates.longitude}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`);
+			const data = await res.json();
+
+			// console.log("coordinates in object: ", sensorData.coordinates.latitude, sensorData.coordinates.longitude);
+			// console.log("Google Maps Data: ", data);
+		}	
+		catch(err) {
+			console.log(err);
+		}
+	};
+
 	return (
 		<div className="p-5">
 			<h2 className="text-center text-4xl font-medium mb-5">Avionic Data</h2>
@@ -69,14 +87,17 @@ const Data = () => {
 				<Card title={"Acceleration"} value={sensorData.acceleration} unit={"km/hr/s"} />
 				<Card title={"Altitude"} value={sensorData.altitude} unit={"ft"} />
 				<Card title={"Speed"} value={sensorData.speed} unit={"m/s"} />
-				<Card title={"Test"} value={40} unit={"m/s^2"} />
-				<Card title={"Test"} value={40} unit={"m/s^2"} />
-				<Card title={"Test"} value={40} unit={"m/s^2"} />
 			</div>
 
 			<div className="text-center text-4xl font-medium my-10">
 				<Chart />
 			</div>
+
+			<>
+				<Map lat={sensorData.coordinates.latitude} lon={sensorData.coordinates.longitude} />
+			</>
+
+			<button onClick={getLocation} className="border rounded-md p-3 bg-slate-200">Get Location</button>
 		</div>
 	);
 };

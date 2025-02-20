@@ -1,5 +1,5 @@
 const Chart = () => {
-	return <div>Location</div>;
+	return <div></div>;
 };
 
 export default Chart;
