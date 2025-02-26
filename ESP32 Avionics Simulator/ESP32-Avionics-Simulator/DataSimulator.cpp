@@ -5,8 +5,6 @@
 #include <math.h>
 #include <random>
 
-
-
 DataSimulator::DataSimulator() {
   currentAcceleration = BASE_ACCELERATION;
   currentAltitude = BASE_ALTITUDE;

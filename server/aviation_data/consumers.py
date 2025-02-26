@@ -23,20 +23,23 @@ class SensorConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         try:
             json_data = json.loads(text_data)
-            message = json_data.get("message")
+            distance_from_object_from_cm_to_ft = 0.0
+
+            if json_data.get("distanceBetweenObjectInCm"):
+                distance_from_object_from_cm_to_ft = float(json_data.get("distanceBetweenObjectInCm") * 0.0328)
+            else:
+                distance_from_object_from_cm_to_ft = None
 
             sensor_data = {
                 "acceleration": json_data.get("acceleration"),
                 "altitude": json_data.get("altitude"),
                 "speed": json_data.get("speed"),
-                "source": json_data.get("source"),
+                "distanceFromObjectInFt": distance_from_object_from_cm_to_ft,
+                "source": "server",
+                "messsage": "From server!",
             }
 
-            print("json data: ", text_data)
-            print(f"message: {message}")
-            # print(f"acceleration: {json_data["acceleration"]}")
-            # print(f"altitude: {json_data["altitude"]}")
-            # print(f"speed: {json_data["speed"]}")
+            print("sensor data: ", text_data)
 
             if json_data["source"] == "esp32":
                 print(f"Data from ESP32: {json_data["message"]}")

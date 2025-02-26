@@ -3,14 +3,31 @@
 #include <ArduinoWebsockets.h>
 #include <ArduinoJson.h>
 #include <DHT11.h>
+#include <ESP32Servo.h>
 #include "secrets.h"
 #include "DataSimulator.h"
 
 using namespace websockets;
 
-// hardware variables
 const int ledPin = 27;
-DHT11 dht11(33);  // dht11 sensor connected to GIO25
+DHT11 dht11(33);  // temperature sensor connected to pin 33
+
+// ultrasonic sensor variables
+const int trigPin = 26;
+const int echoPin = 14;
+long duration;  
+int distance;   // distance = (speed (speed of sound, which is 340 m/s) * time) / 2   HAVE TO DIVIDE BY 2 TO ACCOUNT FOR THE SOUND WAVE TRAVELING TO THE OBJECT AND BOUNCING BACK
+
+// active buzzer
+const int buzzerPin = 32;
+
+// servo
+// Servo servo;
+// unsigned long prevMillisServo = 0;
+// int servoInterval = 10;
+// const int servoPin = 25;
+// int currServoAngle = 0;
+// int endingServoAngle = 180;
 
 int tempToLightLED = 0;
 
@@ -26,12 +43,22 @@ DataSimulator simulateAviationData(millis());
 float acceleration = 0.0;
 float altitude = 0.0;
 float speed = 0.0;
+int distanceBetweenObjectInCm = 0;
 int temperature = 0;
 
 void setup() {
   Serial.begin(115200);
   pinMode(ledPin, OUTPUT); 
-  // pinMode(buttonPin, INPUT_PULLUP);
+
+  // ultrasonic sensor setup
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+
+  // active buzzer 
+  pinMode(buzzerPin, OUTPUT);
+
+  // servo
+  // servo.attach(servoPin);
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
@@ -64,49 +91,54 @@ void setup() {
   else {
     Serial.println("Error establishing a websocket connection...");
   }
-
-  Serial.setDebugOutput(true);
-
 }
 
 void loop() {
+  unsigned long currentMillisServo = millis();
+
+  // ultrasonic sensor logic
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // return sound wave travel time
+  duration = pulseIn(echoPin, HIGH);
+  distance = duration * 0.034 / 2;  //
+  
+  Serial.print("Distance: ");
+  Serial.println(distance);
+  distanceBetweenObjectInCm = distance;
+
+  if(distance <= 10){
+    digitalWrite(buzzerPin, HIGH); 
+    digitalWrite(ledPin, HIGH); 
+    Serial.println("DANGER!");
+  } 
+  else{
+    digitalWrite(buzzerPin, LOW);
+    digitalWrite(ledPin, LOW);
+  } 
+
+  // if(currentMillisServo - prevMillisServo >= interval) {
+  //   prevMillisServo = currentMillisServo;
+
+  //   servo.write()
+  // }
+
   acceleration = simulateAviationData.simulateAcceleration(millis());
   altitude = simulateAviationData.simulateAltitude(millis());
   speed = simulateAviationData.simulateSpeed(millis());
 
-  Serial.print("Acceleration: ");
-  Serial.print(acceleration);
-  Serial.println(" km/h/s");
-
-  Serial.print("Altitude: ");
-  Serial.print(altitude);
-  Serial.println(" ft");
-
-  Serial.print("Speed: ");
-  Serial.print(speed);
-  Serial.println(" km/hr");
-  Serial.println();
-
   // send sensor data to server
-  if (wsClient.available()) {
-        DynamicJsonDocument doc(100); 
-
-        doc["acceleration"] = acceleration;
-        doc["altitude"] = altitude;
-        doc["speed"] = speed;
-        doc["type"] = "sensor_data";
-        doc["source"] = "esp32";
-        doc["message"] = "From ESP32!";
-        
-        char jsonBuffer[256];
-        serializeJson(doc, jsonBuffer);
-
-        wsClient.send(jsonBuffer);
-    }
+  if (wsClient.available())
+    sendSensorData(wsClient, acceleration, altitude, speed, distanceBetweenObjectInCm, temperature);
 
   wsClient.poll();
 
-  delay(1000);
+  delay(500);
 }
 
 void onMessageCallback(WebsocketsMessage message) {
@@ -130,20 +162,20 @@ void onEventsCallback(WebsocketsEvent event, String data) {
     }
 }
 
-
-void sendSensorData() {
-    DynamicJsonDocument doc(60); // Adjust size as needed
-
-    doc["acceleration"] = acceleration;
-    doc["altitude"] = altitude;
-    doc["speed"] = speed;
-    doc["temperature"] = temperature;
-    doc["message"] = "From ESP32!";
-
-    String jsonString;
-    // serializeJson(doc, jsonString);
-
-    Serial.println(jsonString);
+// sending the sensor data to server
+void sendSensorData(WebsocketsClient& wsClient, float& acceleration, float& altitude, float& speed, int& distanceBetweenObjectInCm, int& temperature) {
+  DynamicJsonDocument doc(60); 
+  doc["acceleration"] = acceleration;
+  doc["altitude"] = altitude;
+  doc["speed"] = speed;
+  doc["distanceBetweenObjectInCm"] = distanceBetweenObjectInCm;
+  doc["type"] = "sensor_data";
+  doc["source"] = "esp32";
+  doc["message"] = "From ESP32!";
+  
+  char jsonBuffer[256];
+  serializeJson(doc, jsonBuffer);
+  wsClient.send(jsonBuffer);
 }
 
 /*

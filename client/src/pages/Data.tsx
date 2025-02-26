@@ -15,6 +15,7 @@ const Data = () => {
 			latitude: 34.074284, 
 			longitude: -118.217839,
 		},
+		distanceFromObject: 0,
 		source: "",
 		vehicleHealth: "",
 	});
@@ -36,13 +37,14 @@ const Data = () => {
 		ws.onmessage = (event) => {
 			try {
 				const data = JSON.parse(event.data);
-				// console.log("Message from server:", data);
+				console.log("Message from server:", data);
 				setMessage(data.message);
 				setSensorData({
 					...sensorData,
-					acceleration: data.acceleration,
-					altitude: data.altitude,
-					speed: data.speed,
+					acceleration: data.acceleration.toFixed(2),
+					altitude: data.altitude.toFixed(0),
+					speed: data.speed.toFixed(0),
+					distanceFromObject: data.distanceFromObjectInFt.toFixed(2),
 					source: data.source,
 				});
 			} catch (error) {
@@ -88,6 +90,8 @@ const Data = () => {
 				<Card title={"Altitude"} value={sensorData.altitude} unit={"ft"} />
 				<Card title={"Speed"} value={sensorData.speed} unit={"m/s"} />
 			</div>
+
+			<p className="bg-red-600">{sensorData.distanceFromObject < 1.5 ? "Danger" : ""}</p>
 
 			<div className="text-center text-4xl font-medium my-10">
 				<Chart />
