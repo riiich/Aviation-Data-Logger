@@ -4,6 +4,7 @@
 #include <ArduinoJson.h>
 #include <DHT11.h>
 #include <ESP32Servo.h>
+#include <mbedtls/aes.h>
 #include "secrets.h"
 #include "DataSimulator.h"
 
@@ -20,6 +21,9 @@ int distance;   // distance = (speed (speed of sound, which is 340 m/s) * time) 
 
 // active buzzer
 const int buzzerPin = 32;
+
+// fan
+const int fanPin = 13;
 
 // servo
 // Servo servo;
@@ -41,7 +45,7 @@ String postPayload = "";
 // data simulator
 DataSimulator simulateAviationData(millis());
 float acceleration = 0.0;
-float altitude = 0.0;
+int altitude = 0.0;
 float speed = 0.0;
 int distanceBetweenObjectInCm = 0;
 int temperature = 0;
@@ -49,6 +53,9 @@ int temperature = 0;
 void setup() {
   Serial.begin(115200);
   pinMode(ledPin, OUTPUT); 
+
+  // fan
+  pinMode(fanPin, OUTPUT);
 
   // ultrasonic sensor setup
   pinMode(trigPin, OUTPUT);
@@ -95,6 +102,8 @@ void setup() {
 
 void loop() {
   unsigned long currentMillisServo = millis();
+
+  analogWrite(fanPin, 100);
 
   // ultrasonic sensor logic
   digitalWrite(trigPin, LOW);

@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -8,9 +9,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-cza@yq@bgccc#-*ym%(e&jo0%@n06#l9v3-o@+9vsk6&=qx^dq"
-# SECRET_KEY = os.getenv("SECRET_KEY")
+dotenv.load_dotenv()
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -80,16 +80,16 @@ ASGI_APPLICATION = "server.asgi.application"
 DATABASES = {
     "default": {
         # SQLITE3 
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        # "ENGINE": "django.db.backends.sqlite3",
+        # "NAME": BASE_DIR / "db.sqlite3",
 
         # POSTGRESQL
-        # "ENGINE": "django.db.backends.postgresql",
-        # "NAME": "",
-        # "USER": "",
-        # "PASSWORD": "",
-        # "HOST": "",
-        # "PORT": "",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT"),
     }
 }
 

@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import Card from "../components/Card";
 import Chart from "../components/Chart";
-import Map from "../components/Map";
+import DangerWarning from "../components/DangerWarning";
+import MapLocation from "../components/Map";
 
 const Data = () => {
-	const [message, setMessage] = useState("");
 	const [socket, setSocket] = useState<WebSocket | null>(null);
 	const [sensorData, setSensorData] = useState({
 		acceleration: 0,
@@ -12,7 +12,7 @@ const Data = () => {
 		speed: 0,
 		temperature: 0,
 		coordinates: {
-			latitude: 34.074284, 
+			latitude: 34.15,
 			longitude: -118.217839,
 		},
 		distanceFromObject: 0,
@@ -37,13 +37,16 @@ const Data = () => {
 		ws.onmessage = (event) => {
 			try {
 				const data = JSON.parse(event.data);
-				console.log("Message from server:", data);
-				setMessage(data.message);
+				// console.log("Message from server:", data);
 				setSensorData({
 					...sensorData,
 					acceleration: data.acceleration.toFixed(2),
 					altitude: data.altitude.toFixed(0),
 					speed: data.speed.toFixed(0),
+					coordinates: {
+						latitude: data.latitude,
+						longitude: data.longitude,
+					},
 					distanceFromObject: data.distanceFromObjectInFt.toFixed(2),
 					source: data.source,
 				});
@@ -61,25 +64,13 @@ const Data = () => {
 		};
 
 		setSocket(ws);
+		console.log("socket: ", socket);
 
 		// Clean up on component unmount
 		return () => {
 			ws.close();
 		};
 	}, []);
-
-	const getLocation = async () => {
-		try {
-			const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${sensorData.coordinates.latitude},${sensorData.coordinates.longitude}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`);
-			const data = await res.json();
-
-			// console.log("coordinates in object: ", sensorData.coordinates.latitude, sensorData.coordinates.longitude);
-			// console.log("Google Maps Data: ", data);
-		}	
-		catch(err) {
-			console.log(err);
-		}
-	};
 
 	return (
 		<div className="p-5">
@@ -91,17 +82,20 @@ const Data = () => {
 				<Card title={"Speed"} value={sensorData.speed} unit={"m/s"} />
 			</div>
 
-			<p className="bg-red-600">{sensorData.distanceFromObject < 1.5 ? "Danger" : ""}</p>
+			{sensorData.distanceFromObject < 1 && (
+				<div className="fixed inset-0 flex justify-center items-center backdrop-blur-md z-40">
+					<DangerWarning />
+				</div>
+			)}
 
 			<div className="text-center text-4xl font-medium my-10">
 				<Chart />
 			</div>
 
-			<>
-				<Map lat={sensorData.coordinates.latitude} lon={sensorData.coordinates.longitude} />
-			</>
-
-			<button onClick={getLocation} className="border rounded-md p-3 bg-slate-200">Get Location</button>
+			<h2 className="text-center m-13 text-4xl font-medium">Current Location</h2>
+			<div className="flex justify-center">
+				<MapLocation lat={sensorData.coordinates.latitude} lon={sensorData.coordinates.longitude} />
+			</div>
 		</div>
 	);
 };

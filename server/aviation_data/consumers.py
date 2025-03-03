@@ -2,6 +2,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.layers import get_channel_layer
 import json
 import asyncio
+import random
 
 class SensorConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -35,6 +36,8 @@ class SensorConsumer(AsyncWebsocketConsumer):
                 "altitude": json_data.get("altitude"),
                 "speed": json_data.get("speed"),
                 "distanceFromObjectInFt": distance_from_object_from_cm_to_ft,
+                "latitude": getRandomLat(34.15, 0.0001),
+                "longitude": getRandomLng(-118.217839, 0.0001),
                 "source": "server",
                 "messsage": "From server!",
             }
@@ -52,3 +55,9 @@ class SensorConsumer(AsyncWebsocketConsumer):
         message = event["message"]
         
         await self.send(text_data=message)
+
+def getRandomLat(centerLat, latRange):
+    return centerLat + (random.random() * 2 - 1) * latRange
+
+def getRandomLng(centerLng, lngRange):
+    return centerLng + (random.random() * 2 - 1) * lngRange
