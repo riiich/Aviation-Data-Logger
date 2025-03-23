@@ -3,6 +3,7 @@ from channels.layers import get_channel_layer
 import json
 import asyncio
 import random
+from utils.decrypt import decrypt_data
 
 class SensorConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -30,6 +31,13 @@ class SensorConsumer(AsyncWebsocketConsumer):
                 distance_from_object_from_cm_to_ft = float(json_data.get("distanceBetweenObjectInCm") * 0.0328)
             else:
                 distance_from_object_from_cm_to_ft = None
+
+            encrypted_data = json_data["encryptedData"]
+            print(f"Encrypted data: {encrypted_data}")
+
+            decrypted_data = decrypt_data(encrypted_data)
+            print(f"Decrypted data: {decrypted_data}")
+            # l2LoTjsRUaXdiks5vaccLg==
 
             sensor_data = {
                 "acceleration": json_data.get("acceleration"),

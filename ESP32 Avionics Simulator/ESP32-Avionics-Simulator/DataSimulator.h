@@ -23,8 +23,8 @@ class DataSimulator {
   private:
     // avionic data    
     float currentAcceleration;
-    float currentAltitude;
     float currentSpeed;
+    int currentAltitude;
     int currentTemperature;
     unsigned long startTime;
 
@@ -34,17 +34,17 @@ class DataSimulator {
 
     // getter and setters
     float getCurrentAcceleration();
-    float getCurrentAltitude();
+    int getCurrentAltitude();
     float getCurrentSpeed();
     int getCurrentTemperature();
 
     void setCurrentAcceleration(float acceleration);
-    void setCurrentAltitude(float altitude);
+    void setCurrentAltitude(int altitude);
     void setCurrentSpeed(float speed);
     void setCurrentTemperature(int temperature);
 
     // data simulator
-    float simulateAltitude(unsigned long timeInMillis);
+    int simulateAltitude(unsigned long timeInMillis);
     float simulateAcceleration(unsigned long timeInMillis);
     float simulateSpeed(unsigned long timeInMillis);
 };

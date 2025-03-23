@@ -28,7 +28,7 @@ float DataSimulator::getCurrentAcceleration() {
   return currentAcceleration;
 }
 
-float DataSimulator::getCurrentAltitude() {
+int DataSimulator::getCurrentAltitude() {
   return currentAltitude;
 }
 
@@ -44,7 +44,7 @@ void DataSimulator::setCurrentAcceleration(float acceleration) {
   this->currentAcceleration = acceleration;
 }
 
-void DataSimulator::setCurrentAltitude(float altitude) {
+void DataSimulator::setCurrentAltitude(int altitude) {
   this->currentAltitude = altitude;
 }
 
@@ -57,7 +57,7 @@ void DataSimulator::setCurrentTemperature(int temperature) {
 }
 
 // returns altitude in feet
-float DataSimulator::simulateAltitude(unsigned long timeInMillis) {
+int DataSimulator::simulateAltitude(unsigned long timeInMillis) {
   float currentTime = (timeInMillis - startTime) / 1000.0;  // seconds
 
   return BASE_ALTITUDE + (ALTITUDE_VARIATION_AMPLITUDE * sin(2 * pi * ALTITUDE_VARIATION_FREQUENCY * currentTime));

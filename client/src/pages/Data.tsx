@@ -82,7 +82,8 @@ const Data = () => {
 				<Card title={"Speed"} value={sensorData.speed} unit={"m/s"} />
 			</div>
 
-			{sensorData.distanceFromObject < 1 && (
+			<p>{sensorData.distanceFromObject}</p>
+			{sensorData.distanceFromObject < 0.3 && (
 				<div className="fixed inset-0 flex justify-center items-center backdrop-blur-md z-40">
 					<DangerWarning />
 				</div>
