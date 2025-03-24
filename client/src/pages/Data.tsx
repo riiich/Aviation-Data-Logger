@@ -3,6 +3,8 @@ import Card from "../components/Card";
 import Chart from "../components/Chart";
 import DangerWarning from "../components/DangerWarning";
 import MapLocation from "../components/Map";
+import DangerSound from "../components/DangerSound";
+import dangerAudio from "../assets/warning-sound.mp3";
 
 const Data = () => {
 	const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -19,6 +21,7 @@ const Data = () => {
 		source: "",
 		vehicleHealth: "",
 	});
+	const [tooClose, setTooClose] = useState(false);
 
 	useEffect(() => {
 		const ws = new WebSocket("ws://localhost:8000/ws/aviation-logger/");
@@ -50,6 +53,11 @@ const Data = () => {
 					distanceFromObject: data.distanceFromObjectInFt.toFixed(2),
 					source: data.source,
 				});
+
+				if (data.distanceFromObjectInFt < 0.3) setTooClose(true);
+				else setTooClose(false);
+
+				console.log(data);
 			} catch (error) {
 				console.error("Error parsing message:", error);
 			}
@@ -82,10 +90,13 @@ const Data = () => {
 				<Card title={"Speed"} value={sensorData.speed} unit={"m/s"} />
 			</div>
 
-			<p>{sensorData.distanceFromObject}</p>
-			{sensorData.distanceFromObject < 0.3 && (
+			<p>
+				{tooClose}: {sensorData.distanceFromObject}
+			</p>
+			{tooClose && (
 				<div className="fixed inset-0 flex justify-center items-center backdrop-blur-md z-40">
 					<DangerWarning />
+					<DangerSound condition={tooClose} audioURL={dangerAudio} />
 				</div>
 			)}
 

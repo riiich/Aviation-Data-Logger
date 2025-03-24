@@ -44,18 +44,12 @@ void setup() {
     Serial.begin(115200);
     pinMode(ledPin, OUTPUT);
 
-    // fan
-    pinMode(fanPin, OUTPUT);
-
     // ultrasonic sensor setup
     pinMode(trigPin, OUTPUT);
     pinMode(echoPin, INPUT);
 
     // active buzzer
     pinMode(buzzerPin, OUTPUT);
-
-    // servo
-    // servo.attach(servoPin);
 
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
@@ -91,8 +85,6 @@ void setup() {
 
 void loop() {
     unsigned long currentMillisServo = millis();
-
-    analogWrite(fanPin, 100);
 
     // ultrasonic sensor logic
     digitalWrite(trigPin, LOW);
@@ -195,7 +187,7 @@ String encryptData(String plainText) {
     memcpy(input, plainText.c_str(), plainTextLength);
 
     // add padding bytes
-    for(int i = 0; i < paddingSize; i++) {
+    for(int i = 0; i < paddingSize; i++) { 
         input[plainTextLength + i] = paddingSize;
     }
 

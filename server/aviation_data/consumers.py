@@ -32,12 +32,11 @@ class SensorConsumer(AsyncWebsocketConsumer):
             else:
                 distance_from_object_from_cm_to_ft = None
 
-            encrypted_data = json_data["encryptedData"]
+            encrypted_data = json_data.get("encryptedData")
             print(f"Encrypted data: {encrypted_data}")
 
             decrypted_data = decrypt_data(encrypted_data)
             print(f"Decrypted data: {decrypted_data}")
-            # l2LoTjsRUaXdiks5vaccLg==
 
             sensor_data = {
                 "acceleration": json_data.get("acceleration"),

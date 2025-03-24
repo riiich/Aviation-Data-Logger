@@ -7,6 +7,9 @@ import os
 dotenv.load_dotenv()
 
 def decrypt_data(encrypted_data):
+    if not encrypted_data:
+        return
+
     try:
         hex_key = os.getenv("ENCRYPTION_KEY")
         hex_iv = os.getenv("ENCRYPTION_IV")
