@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+body {
+  /* background-color: rgb(27, 27, 27); */
+  background-color: rgb(23, 37, 64);
+}
+
 @keyframes scale-pulse {
     0% {
       transform: scale(1);

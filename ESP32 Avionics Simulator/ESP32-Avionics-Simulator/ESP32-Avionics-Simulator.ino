@@ -39,6 +39,7 @@ int altitude = 0.0;
 float speed = 0.0;
 int distanceBetweenObjectInCm = 0;
 int temperature = 0;
+int nauticalMiles = 420;
 
 void setup() {
     Serial.begin(115200);
@@ -106,7 +107,8 @@ void loop() {
         digitalWrite(buzzerPin, HIGH);
         digitalWrite(ledPin, HIGH);
         Serial.println("DANGER!");
-    } else {
+    } 
+    else {
         digitalWrite(buzzerPin, LOW);
         digitalWrite(ledPin, LOW);
     }
@@ -115,22 +117,25 @@ void loop() {
     altitude = simulateAviationData.simulateAltitude(millis());
     speed = simulateAviationData.simulateSpeed(millis());
 
-    // ENCRYPTION TESTING PURPOSES BEGIN ---------------------------------------------------
-    String testString = "Hello World!";
-    String testString2 = String(19994);
+    nauticalMiles -= 1;
 
-    Serial.print("Original Text: ");
-    Serial.println(testString2);
-    
-    String testingEncryptedData = encryptData(testString2);
-    Serial.print("Text after encryption: ");
-    Serial.println(testingEncryptedData);
+    if (nauticalMiles < 1) 
+        nauticalMiles = 0;
 
-    // ENCRYPTION TESTING PURPOSES END ---------------------------------------------------
+    temperature = dht11.readTemperature();
+
+    if(temperature == DHT11::ERROR_CHECKSUM && temperature == DHT11::ERROR_TIMEOUT) {
+		Serial.print("Error: ");
+		Serial.println(DHT11::getErrorString(temperature));
+		return;
+	}
+
+    Serial.print("Temperature: ");
+    Serial.println(temperature);
 
     // send sensor data to server
     if (wsClient.available())
-        sendSensorData(wsClient, acceleration, altitude, speed, distanceBetweenObjectInCm, temperature, testingEncryptedData);
+        sendSensorData(wsClient, acceleration, altitude, speed, distanceBetweenObjectInCm, temperature, nauticalMiles);
 
     wsClient.poll();
 
@@ -160,13 +165,15 @@ void onEventsCallback(WebsocketsEvent event, String data) {
 
 // sending the sensor data to server
 void sendSensorData(WebsocketsClient& wsClient, float& acceleration, int& altitude, 
-                    float& speed, int& distanceBetweenObjectInCm, int& temperature, String& encryptedData) {
+                    float& speed, int& distanceBetweenObjectInCm, int& temperature, 
+                    int& nauticalMiles) {
     DynamicJsonDocument doc(60);
     doc["acceleration"] = acceleration;
     doc["altitude"] = altitude;
     doc["speed"] = speed;
-    doc["distanceBetweenObjectInCm"] = distanceBetweenObjectInCm;
-    doc["encryptedData"] = encryptedData;
+    doc["distance_between_object_in_cm"] = distanceBetweenObjectInCm;
+    doc["temperature"] = temperature;
+    doc["nautical_miles"] = nauticalMiles;
     doc["type"] = "sensor_data";
     doc["source"] = "esp32";
     doc["message"] = "From ESP32!";
@@ -225,7 +232,6 @@ String encryptData(String plainText) {
 
     return encryptedResult;
 }
-
 
 
 

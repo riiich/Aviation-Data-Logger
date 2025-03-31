@@ -27,26 +27,24 @@ class SensorConsumer(AsyncWebsocketConsumer):
             json_data = json.loads(text_data)
             distance_from_object_from_cm_to_ft = 0.0
 
-            if json_data.get("distanceBetweenObjectInCm"):
-                distance_from_object_from_cm_to_ft = float(json_data.get("distanceBetweenObjectInCm") * 0.0328)
+            distance_between_object_in_cm = json_data.get("distance_between_object_in_cm")
+
+            if distance_between_object_in_cm:
+                distance_from_object_from_cm_to_ft = float(distance_between_object_in_cm * 0.0328)
             else:
                 distance_from_object_from_cm_to_ft = None
-
-            encrypted_data = json_data.get("encryptedData")
-            print(f"Encrypted data: {encrypted_data}")
-
-            decrypted_data = decrypt_data(encrypted_data)
-            print(f"Decrypted data: {decrypted_data}")
 
             sensor_data = {
                 "acceleration": json_data.get("acceleration"),
                 "altitude": json_data.get("altitude"),
                 "speed": json_data.get("speed"),
                 "distanceFromObjectInFt": distance_from_object_from_cm_to_ft,
+                "nautical_miles": json_data.get("nautical_miles"),
+                "temperature_in_celsius": json_data.get("temperature"),
                 "latitude": getRandomLat(34.15, 0.0001),
                 "longitude": getRandomLng(-118.217839, 0.0001),
                 "source": "server",
-                "messsage": "From server!",
+                "message": "From server!",
             }
 
             print("sensor data: ", text_data)
@@ -63,6 +61,7 @@ class SensorConsumer(AsyncWebsocketConsumer):
         
         await self.send(text_data=message)
 
+# simulating random coordinates to be shown in google maps
 def getRandomLat(centerLat, latRange):
     return centerLat + (random.random() * 2 - 1) * latRange
 

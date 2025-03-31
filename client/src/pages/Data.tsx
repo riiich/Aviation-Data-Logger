@@ -5,6 +5,9 @@ import DangerWarning from "../components/DangerWarning";
 import MapLocation from "../components/Map";
 import DangerSound from "../components/DangerSound";
 import dangerAudio from "../assets/warning-sound.mp3";
+import { FaPlaneDeparture } from "react-icons/fa";
+import { IoMdSpeedometer } from "react-icons/io";
+import { PiSpeedometerLight } from "react-icons/pi";
 
 const Data = () => {
 	const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -41,21 +44,24 @@ const Data = () => {
 			try {
 				const data = JSON.parse(event.data);
 				// console.log("Message from server:", data);
-				setSensorData({
-					...sensorData,
-					acceleration: data.acceleration.toFixed(2),
-					altitude: data.altitude.toFixed(0),
-					speed: data.speed.toFixed(0),
-					coordinates: {
-						latitude: data.latitude,
-						longitude: data.longitude,
-					},
-					distanceFromObject: data.distanceFromObjectInFt.toFixed(2),
-					source: data.source,
-				});
 
-				if (data.distanceFromObjectInFt < 0.3) setTooClose(true);
-				else setTooClose(false);
+				setSensorData(prev => ({
+					...prev,
+					acceleration: data.acceleration ? data.acceleration.toFixed(2) : 0,
+					altitude: data.altitude ? data.altitude.toFixed(0) : 0,
+					speed: data.speed ? data.speed.toFixed(0) : 0,
+					coordinates: {
+						latitude: data.latitude || prev.coordinates.latitude,
+						longitude: data.longitude || prev.coordinates.longitude,
+					},
+					distanceFromObject: data.distanceFromObjectInFt ? data.distanceFromObjectInFt.toFixed(2) : 0,
+					source: data.source,
+				}));
+
+				if (data.distanceFromObjectInFt < 0.3) 
+					setTooClose(true);
+				else 
+					setTooClose(false);
 
 				console.log(data);
 			} catch (error) {
@@ -82,17 +88,36 @@ const Data = () => {
 
 	return (
 		<div className="p-5">
-			<h2 className="text-center text-4xl font-medium mb-5">Avionic Data</h2>
-
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-				<Card title={"Acceleration"} value={sensorData.acceleration} unit={"km/hr/s"} />
-				<Card title={"Altitude"} value={sensorData.altitude} unit={"ft"} />
-				<Card title={"Speed"} value={sensorData.speed} unit={"m/s"} />
+			<div className="text-white">
+				<h2 className="text-center text-4xl font-medium mb-5">Aviation Dashboard</h2>
+				<p>Real-time Flight Data Monitoring</p>
 			</div>
 
-			<p>
-				{tooClose}: {sensorData.distanceFromObject}
-			</p>
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+				<Card
+					title={"Acceleration"}
+					value={sensorData.acceleration}
+					unit={"km/hr/s"}
+					type="acceleration"
+					icon={PiSpeedometerLight}
+				/>
+				<Card
+					title={"Altitude"}
+					value={sensorData.altitude}
+					unit={"ft"}
+					type="altitude"
+					icon={FaPlaneDeparture}
+				/>
+				<Card
+					title={"Speed"}
+					value={sensorData.speed}
+					unit={"m/s"}
+					type="speed"
+					icon={IoMdSpeedometer}
+				/>
+			</div>
+
+			<p>{sensorData.distanceFromObject}</p>
 			{tooClose && (
 				<div className="fixed inset-0 flex justify-center items-center backdrop-blur-md z-40">
 					<DangerWarning />
@@ -104,7 +129,7 @@ const Data = () => {
 				<Chart />
 			</div>
 
-			<h2 className="text-center m-13 text-4xl font-medium">Current Location</h2>
+			<h2 className="text-white text-center m-13 text-4xl font-medium">Current Location</h2>
 			<div className="flex justify-center">
 				<MapLocation lat={sensorData.coordinates.latitude} lon={sensorData.coordinates.longitude} />
 			</div>

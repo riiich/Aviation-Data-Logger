@@ -5,7 +5,7 @@ interface DangerSoundProps {
 	audioURL?: string;
 }
 
-const DangerSound = ({ condition, audioURL }: DangerSoundProps) => {
+const DangerSound: React.FC<DangerSoundProps> = ({ condition, audioURL }) => {
 	const audioRef = useRef<HTMLAudioElement | null>(null);
 	const [audioIsPlaying, setAudioIsPlaying] = useState<boolean>(false);
 
@@ -47,6 +47,8 @@ const DangerSound = ({ condition, audioURL }: DangerSoundProps) => {
 			setAudioIsPlaying(false);
 		}
 	}, [condition, audioIsPlaying]);
+
+	return <></>;
 };
 
 export default DangerSound;
