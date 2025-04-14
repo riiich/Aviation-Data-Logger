@@ -9,6 +9,7 @@
 #include <mbedtls/aes.h>
 #include <mbedtls/base64.h>
 
+
 using namespace websockets;
 
 const int ledPin = 27;
@@ -39,7 +40,7 @@ int altitude = 0.0;
 float speed = 0.0;
 int distanceBetweenObjectInCm = 0;
 int temperature = 0;
-int nauticalMiles = 420;
+int fuel = 420;
 
 void setup() {
     Serial.begin(115200);
@@ -117,10 +118,10 @@ void loop() {
     altitude = simulateAviationData.simulateAltitude(millis());
     speed = simulateAviationData.simulateSpeed(millis());
 
-    nauticalMiles -= 1;
+    fuel -= 1;
 
-    if (nauticalMiles < 1) 
-        nauticalMiles = 0;
+    if (fuel < 1) 
+        fuel = 0;
 
     temperature = dht11.readTemperature();
 
@@ -135,11 +136,11 @@ void loop() {
 
     // send sensor data to server
     if (wsClient.available())
-        sendSensorData(wsClient, acceleration, altitude, speed, distanceBetweenObjectInCm, temperature, nauticalMiles);
+        sendSensorData(wsClient, acceleration, altitude, speed, distanceBetweenObjectInCm, temperature, fuel);
 
     wsClient.poll();
 
-    delay(500);
+    delay(50);
 }
 
 void onMessageCallback(WebsocketsMessage message) {
@@ -166,14 +167,14 @@ void onEventsCallback(WebsocketsEvent event, String data) {
 // sending the sensor data to server
 void sendSensorData(WebsocketsClient& wsClient, float& acceleration, int& altitude, 
                     float& speed, int& distanceBetweenObjectInCm, int& temperature, 
-                    int& nauticalMiles) {
+                    int& fuel) {
     DynamicJsonDocument doc(60);
     doc["acceleration"] = acceleration;
     doc["altitude"] = altitude;
     doc["speed"] = speed;
     doc["distance_between_object_in_cm"] = distanceBetweenObjectInCm;
     doc["temperature"] = temperature;
-    doc["nautical_miles"] = nauticalMiles;
+    doc["fuel"] = fuel;
     doc["type"] = "sensor_data";
     doc["source"] = "esp32";
     doc["message"] = "From ESP32!";
@@ -356,4 +357,85 @@ void makePOSTRequest() {
 int celsiusToFahrenheit(int celsius) {
 	return (celsius * (9/5)) + 32;
 }
+
+// setting up MPU sensor to be put in the setup function
+void loadMPUSensor(Adafruit_MPU6050& mpu) {
+    Serial.println("Attempting to load MPU sensor...");
+
+    Serial.print("status: ");
+    Serial.println(mpu.begin());
+
+    if(mpu.begin()) Serial.println("hahahha");
+
+    if(!mpu.begin(0x69)) {
+        Serial.println("Failed to find the MPU 6050 chip...");
+    }
+
+    Serial.println("MPU 6050 is found!!!");
+
+    mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+
+    Serial.print("Accelerator range is set to: ");
+    
+    switch(mpu.getAccelerometerRange()) {
+        case MPU6050_RANGE_2_G:
+            Serial.println("+-2G");
+            break;
+        case MPU6050_RANGE_4_G:
+            Serial.println("+-4G");
+            break;
+        case MPU6050_RANGE_8_G:
+            Serial.println("+-8G");
+            break;
+        case MPU6050_RANGE_16_G:
+            Serial.println("+-16G");
+            break;
+    }
+
+    mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+    Serial.print("Gyro range is set to: ");
+
+    switch(mpu.getGyroRange()) {
+        case MPU6050_RANGE_250_DEG:
+            Serial.println("+- 250 deg/s");
+            break;
+        case MPU6050_RANGE_500_DEG:
+            Serial.println("+- 500 deg/s");
+            break;
+        case MPU6050_RANGE_1000_DEG:
+            Serial.println("+- 1000 deg/s");
+            break;
+        case MPU6050_RANGE_2000_DEG:
+            Serial.println("+- 2000 deg/s");
+            break;
+    }
+
+    mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+    switch(mpu.getFilterBandwidth()) {
+        case MPU6050_BAND_260_HZ:
+            Serial.println("260 Hz");
+            break;
+        case MPU6050_BAND_184_HZ:
+            Serial.println("184 Hz");
+            break;
+        case MPU6050_BAND_94_HZ:
+            Serial.println("94 Hz");
+            break;
+        case MPU6050_BAND_44_HZ:
+            Serial.println("44 Hz");
+            break;
+        case MPU6050_BAND_21_HZ:
+            Serial.println("21 Hz");
+            break;
+        case MPU6050_BAND_10_HZ:
+            Serial.println("10 Hz");
+            break;
+        case MPU6050_BAND_5_HZ:
+            Serial.println("5 Hz");
+            break;
+    }
+
+    delay(100);
+}
+
 */

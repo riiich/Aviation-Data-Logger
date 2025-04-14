@@ -5,6 +5,8 @@ import asyncio
 import random
 from utils.decrypt import decrypt_data
 
+DANGER_DISTANCE = 10
+
 class SensorConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         await self.accept()
@@ -26,20 +28,27 @@ class SensorConsumer(AsyncWebsocketConsumer):
         try:
             json_data = json.loads(text_data)
             distance_from_object_from_cm_to_ft = 0.0
+            objectWithinDistance = False
 
             distance_between_object_in_cm = json_data.get("distance_between_object_in_cm")
 
             if distance_between_object_in_cm:
                 distance_from_object_from_cm_to_ft = float(distance_between_object_in_cm * 0.0328)
+
+                if distance_between_object_in_cm <= DANGER_DISTANCE:
+                    objectWithinDistance = True
             else:
                 distance_from_object_from_cm_to_ft = None
+                objectWithinDistance = False
 
+            # data sent to client
             sensor_data = {
                 "acceleration": json_data.get("acceleration"),
                 "altitude": json_data.get("altitude"),
                 "speed": json_data.get("speed"),
                 "distanceFromObjectInFt": distance_from_object_from_cm_to_ft,
-                "nautical_miles": json_data.get("nautical_miles"),
+                "objectWithinDistance": objectWithinDistance,
+                "fuel": json_data.get("fuel"),
                 "temperature_in_celsius": json_data.get("temperature"),
                 "latitude": getRandomLat(34.15, 0.0001),
                 "longitude": getRandomLng(-118.217839, 0.0001),

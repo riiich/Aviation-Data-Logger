@@ -20,6 +20,7 @@ const Data = () => {
 			latitude: 34.15,
 			longitude: -118.217839,
 		},
+		fuel: 0,
 		distanceFromObject: 0,
 		source: "",
 		vehicleHealth: "",
@@ -45,23 +46,27 @@ const Data = () => {
 				const data = JSON.parse(event.data);
 				// console.log("Message from server:", data);
 
-				setSensorData(prev => ({
+				setSensorData((prev) => ({
 					...prev,
 					acceleration: data.acceleration ? data.acceleration.toFixed(2) : 0,
 					altitude: data.altitude ? data.altitude.toFixed(0) : 0,
 					speed: data.speed ? data.speed.toFixed(0) : 0,
+					temperature: data.temperature_in_celsius,
 					coordinates: {
-						latitude: data.latitude || prev.coordinates.latitude,
-						longitude: data.longitude || prev.coordinates.longitude,
+						latitude: data.latitude ? data.latitude : 0,
+						longitude: data.longitude ? data.longitude : 0,
+						// latitude: data.latitude ? data.latitude.toFixed(5) : prev.coordinates.latitude,
+						// longitude: data.longitude ? data.longitude : prev.coordinates.longitude,
 					},
-					distanceFromObject: data.distanceFromObjectInFt ? data.distanceFromObjectInFt.toFixed(2) : 0,
+					fuel: data.fuel,
+					distanceFromObject: data.distanceFromObjectInFt
+						? data.distanceFromObjectInFt.toFixed(2)
+						: 0,
 					source: data.source,
 				}));
 
-				if (data.distanceFromObjectInFt < 0.3) 
-					setTooClose(true);
-				else 
-					setTooClose(false);
+				if (data.distanceFromObjectInFt <= 0.3) setTooClose(true);
+				else setTooClose(false);
 
 				console.log(data);
 			} catch (error) {
@@ -80,7 +85,6 @@ const Data = () => {
 		setSocket(ws);
 		console.log("socket: ", socket);
 
-		// Clean up on component unmount
 		return () => {
 			ws.close();
 		};
@@ -114,6 +118,28 @@ const Data = () => {
 					unit={"m/s"}
 					type="speed"
 					icon={IoMdSpeedometer}
+				/>
+				<Card
+					title={"Coordinates"}
+					value={0}
+					coordinates={sensorData.coordinates}
+					unit={""}
+					type="coordinates"
+					// icon={}
+				/>
+				<Card
+					title={"Temperature"}
+					value={sensorData.temperature}
+					unit={"°C"}
+					type="temperature"
+					// icon={}
+				/>
+				<Card
+					title={"Fuel"}
+					value={sensorData.fuel}
+					unit={""}
+					type="fuel"
+					// icon={}
 				/>
 			</div>
 

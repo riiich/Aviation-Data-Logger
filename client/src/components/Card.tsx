@@ -5,6 +5,7 @@ import { IconType } from "react-icons";
 interface CardType {
 	title: string;
 	value: number;
+	coordinates?: { latitude: number; longitude: number };
 	unit: string;
 	type?: string;
 	icon?: IconType;
@@ -14,7 +15,7 @@ function cn(...inputs: unknown[]) {
 	return twMerge(clsx(inputs));
 }
 
-const Card = ({ title, value, unit, type, icon: Icon }: CardType) => {
+const Card = ({ title, value, coordinates, unit, type, icon: Icon }: CardType) => {
 	const cardBackgroundColor = () => {
 		if (type === "acceleration") return value > 5 ? "bg-green-300" : "bg-red-500";
 		if (type === "altitude") return value > 34500 ? "bg-green-300" : "bg-red-500";
@@ -32,9 +33,18 @@ const Card = ({ title, value, unit, type, icon: Icon }: CardType) => {
 				<h2 className="text-xl font-mono">{title}</h2>
 				{Icon && <Icon className="text-2xl" />}
 			</div>
-			<p>
-				<b className="text-3xl">{value ? value : 0}</b> <span className="text-black">{unit}</span>
-			</p>
+			{value !== 0 ? (
+				<p>
+					<b className="text-3xl">{value ? value : 0}</b> <span className="text-black">{unit}</span>
+				</p>
+			) : (
+				<p>
+					<b className="text-xl">
+						{coordinates?.latitude}, {coordinates?.longitude}
+					</b>{" "}
+					<span className="text-black">{}</span>
+				</p>
+			)}
 		</div>
 	);
 };

@@ -20,14 +20,6 @@ const float ACCELERATION_VARIATION_AMPLITUDE = 10.0; // km/h/s
 const float ACCELERATION_VARIATION_FREQUENCY = 0.4; // hz
 
 class DataSimulator {
-  private:
-    // avionic data    
-    float currentAcceleration;
-    float currentSpeed;
-    int currentAltitude;
-    int currentTemperature;
-    unsigned long startTime;
-
   public:
     DataSimulator();
     DataSimulator(unsigned long timeInMillis);
@@ -47,6 +39,14 @@ class DataSimulator {
     int simulateAltitude(unsigned long timeInMillis);
     float simulateAcceleration(unsigned long timeInMillis);
     float simulateSpeed(unsigned long timeInMillis);
+
+  private:
+    // avionic data    
+    float currentAcceleration;
+    float currentSpeed;
+    int currentAltitude;
+    int currentTemperature;
+    unsigned long startTime;
 };
 
 #endif
