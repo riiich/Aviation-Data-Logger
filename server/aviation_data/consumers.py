@@ -1,9 +1,11 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.layers import get_channel_layer
+from asgiref.sync import sync_to_async
 import json
 import asyncio
 import random
 from utils.decrypt import decrypt_data
+from aviation_data.models import AviationData
 
 DANGER_DISTANCE = 10
 
@@ -30,6 +32,13 @@ class SensorConsumer(AsyncWebsocketConsumer):
             distance_from_object_from_cm_to_ft = 0.0
             objectWithinDistance = False
 
+            acceleration = json_data.get("acceleration")
+            altitude = json_data.get("altitude")
+            speed = json_data.get("speed")
+            latitude = getRandomLat(34.15, 0.0001)
+            longitude = getRandomLng(-118.217839, 0.0001)
+            temperature = json_data.get("temperature")
+            fuel = json_data.get("fuel")
             distance_between_object_in_cm = json_data.get("distance_between_object_in_cm")
 
             if distance_between_object_in_cm:
@@ -43,18 +52,23 @@ class SensorConsumer(AsyncWebsocketConsumer):
 
             # data sent to client
             sensor_data = {
-                "acceleration": json_data.get("acceleration"),
-                "altitude": json_data.get("altitude"),
-                "speed": json_data.get("speed"),
+                "acceleration": acceleration,
+                "altitude": altitude,
+                "speed": speed,
                 "distanceFromObjectInFt": distance_from_object_from_cm_to_ft,
                 "objectWithinDistance": objectWithinDistance,
-                "fuel": json_data.get("fuel"),
-                "temperature_in_celsius": json_data.get("temperature"),
-                "latitude": getRandomLat(34.15, 0.0001),
-                "longitude": getRandomLng(-118.217839, 0.0001),
+                "fuel": fuel,
+                "temperature_in_celsius": temperature,
+                "latitude": latitude,
+                "longitude": longitude,
                 "source": "server",
                 "message": "From server!",
             }
+
+            if acceleration and altitude and speed and latitude and longitude:
+                await save_aviation_data(acceleration, altitude, speed, latitude, longitude, temperature, fuel, distance_between_object_in_cm)
+            else:
+                print("not saved...")
 
             print("sensor data: ", text_data)
 
@@ -69,6 +83,22 @@ class SensorConsumer(AsyncWebsocketConsumer):
         message = event["message"]
         
         await self.send(text_data=message)
+
+@sync_to_async
+def save_aviation_data(acceleration, altitude, speed, latitude, longitude, temperature, fuel, distance_between_object_in_cm):
+    aviation_data = AviationData(acceleration=acceleration, 
+                                altitude=altitude, 
+                                speed=speed, 
+                                latitude=latitude, 
+                                longitude=longitude,
+                                temperature=temperature, 
+                                fuel=fuel,
+                                proximity_to_object_in_cm=distance_between_object_in_cm
+                                )
+
+    aviation_data.save()
+    print("Data saved to database!")
+
 
 # simulating random coordinates to be shown in google maps
 def getRandomLat(centerLat, latRange):

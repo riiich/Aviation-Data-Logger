@@ -20,6 +20,12 @@ const Card = ({ title, value, coordinates, unit, type, icon: Icon }: CardType) =
 		if (type === "acceleration") return value > 5 ? "bg-green-300" : "bg-red-500";
 		if (type === "altitude") return value > 34500 ? "bg-green-300" : "bg-red-500";
 		if (type === "speed") return value > 860 ? "bg-green-300" : "bg-red-500";
+
+		if (type === "fuel") {
+			if (value < 420 && value >= 420) return "bg-green-300";
+			else if (value < 280 && value >= 75) return "bg-yellow-300";
+			else return "bg-red-500";
+		}
 	};
 
 	return (
@@ -36,6 +42,10 @@ const Card = ({ title, value, coordinates, unit, type, icon: Icon }: CardType) =
 			{value !== 0 ? (
 				<p>
 					<b className="text-3xl">{value ? value : 0}</b> <span className="text-black">{unit}</span>
+				</p>
+			) : type === "fuel" ? (
+				<p>
+					<b className="text-3xl">0</b>
 				</p>
 			) : (
 				<p>

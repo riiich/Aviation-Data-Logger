@@ -1,13 +1,17 @@
 import { useState, useEffect } from "react";
 import Card from "../components/Card";
-import Chart from "../components/Chart";
-import DangerWarning from "../components/DangerWarning";
 import MapLocation from "../components/Map";
-import DangerSound from "../components/DangerSound";
+import AudioEffect from "../components/AudioEffect";
+import DangerWarning from "../components/DangerWarning";
 import dangerAudio from "../assets/warning-sound.mp3";
+import EmptyFuelWarning from "../components/EmptyFuelWarning";
+import emptyFuelAudio from "../assets/propeller.mp3";
 import { FaPlaneDeparture } from "react-icons/fa";
 import { IoMdSpeedometer } from "react-icons/io";
 import { PiSpeedometerLight } from "react-icons/pi";
+import { FaLocationDot } from "react-icons/fa6";
+import { FaTemperatureLow } from "react-icons/fa";
+import { BsFillFuelPumpFill } from "react-icons/bs";
 
 const Data = () => {
 	const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -26,6 +30,7 @@ const Data = () => {
 		vehicleHealth: "",
 	});
 	const [tooClose, setTooClose] = useState(false);
+	const [emptyFuel, setEmptyFuel] = useState(false);
 
 	useEffect(() => {
 		const ws = new WebSocket("ws://localhost:8000/ws/aviation-logger/");
@@ -67,6 +72,9 @@ const Data = () => {
 
 				if (data.distanceFromObjectInFt <= 0.3) setTooClose(true);
 				else setTooClose(false);
+
+				if (data.fuel === 0) setEmptyFuel(true);
+				else setEmptyFuel(false);
 
 				console.log(data);
 			} catch (error) {
@@ -125,35 +133,42 @@ const Data = () => {
 					coordinates={sensorData.coordinates}
 					unit={""}
 					type="coordinates"
-					// icon={}
+					icon={FaLocationDot}
 				/>
 				<Card
 					title={"Temperature"}
 					value={sensorData.temperature}
 					unit={"°C"}
 					type="temperature"
-					// icon={}
+					icon={FaTemperatureLow}
 				/>
 				<Card
 					title={"Fuel"}
 					value={sensorData.fuel}
 					unit={""}
 					type="fuel"
-					// icon={}
+					icon={BsFillFuelPumpFill}
 				/>
 			</div>
 
 			<p>{sensorData.distanceFromObject}</p>
 			{tooClose && (
 				<div className="fixed inset-0 flex justify-center items-center backdrop-blur-md z-40">
+					<AudioEffect condition={tooClose} audioURL={dangerAudio} infiniteLoop={true} />
 					<DangerWarning />
-					<DangerSound condition={tooClose} audioURL={dangerAudio} />
 				</div>
 			)}
 
-			<div className="text-center text-4xl font-medium my-10">
+			{emptyFuel && (
+				<div className="fixed inset-0 flex justify-center items-center backdrop-blur-md z-39">
+					<AudioEffect condition={emptyFuel} audioURL={emptyFuelAudio} infiniteLoop={false} />
+					<EmptyFuelWarning />
+				</div>
+			)}
+
+			{/* <div className="text-center text-4xl font-medium my-10">
 				<Chart />
-			</div>
+			</div> */}
 
 			<h2 className="text-white text-center m-13 text-4xl font-medium">Current Location</h2>
 			<div className="flex justify-center">

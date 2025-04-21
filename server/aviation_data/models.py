@@ -9,14 +9,14 @@ from django.db import models
 '''
 
 class AviationData(models.Model): 
-    acceleration = models.DecimalField(max_digits=2, decimal_places=2)
-    altitude = models.IntegerField()
-    speed = models.DecimalField(max_digits=2, decimal_places=2)
-    latitude = models.DecimalField(max_digits=6, decimal_places=2)
-    longitude = models.DecimalField(max_digits=6, decimal_places=2)
-    distance_caution = models.BooleanField(null=True)
-    temperature = models.IntegerField()
-    nautical_miles = models.IntegerField(default=0)
+    acceleration = models.DecimalField(max_digits=10, decimal_places=7, null=True)
+    altitude = models.IntegerField(null=True)
+    speed = models.DecimalField(max_digits=8, decimal_places=5, null=True)
+    latitude = models.DecimalField(max_digits=15, decimal_places=8)
+    longitude = models.DecimalField(max_digits=15, decimal_places=8)
+    proximity_to_object_in_cm = models.IntegerField(null=True)
+    temperature = models.IntegerField(null=True)
+    fuel = models.IntegerField(null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:

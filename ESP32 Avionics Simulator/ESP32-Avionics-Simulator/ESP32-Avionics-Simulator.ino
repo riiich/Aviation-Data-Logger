@@ -40,7 +40,8 @@ int altitude = 0.0;
 float speed = 0.0;
 int distanceBetweenObjectInCm = 0;
 int temperature = 0;
-int fuel = 420;
+const int MAX_FUEL = 420;
+int fuel = MAX_FUEL;
 
 void setup() {
     Serial.begin(115200);
@@ -174,6 +175,7 @@ void sendSensorData(WebsocketsClient& wsClient, float& acceleration, int& altitu
     doc["speed"] = speed;
     doc["distance_between_object_in_cm"] = distanceBetweenObjectInCm;
     doc["temperature"] = temperature;
+    doc["max_fuel"] = MAX_FUEL;
     doc["fuel"] = fuel;
     doc["type"] = "sensor_data";
     doc["source"] = "esp32";

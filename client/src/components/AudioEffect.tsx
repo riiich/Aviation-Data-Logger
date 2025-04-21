@@ -1,21 +1,20 @@
 import { useState, useEffect, useRef } from "react";
 
-interface DangerSoundProps {
+interface AudioEffectProps {
 	condition: boolean;
 	audioURL?: string;
+	infiniteLoop: boolean;
 }
 
-const DangerSound: React.FC<DangerSoundProps> = ({ condition, audioURL }) => {
+const AudioEffect: React.FC<AudioEffectProps> = ({ condition, audioURL, infiniteLoop }) => {
 	const audioRef = useRef<HTMLAudioElement | null>(null);
 	const [audioIsPlaying, setAudioIsPlaying] = useState<boolean>(false);
 
 	useEffect(() => {
-		console.log("danger sound mounted!");
-
 		// create an audio element if it doesn't already exist
 		if (!audioRef.current) {
 			audioRef.current = new Audio(audioURL);
-			audioRef.current.loop = true;
+			audioRef.current.loop = infiniteLoop;
 		}
 
 		return () => {
@@ -42,7 +41,6 @@ const DangerSound: React.FC<DangerSoundProps> = ({ condition, audioURL }) => {
 		}
 		// stop the audio IF the object IS NOT too close AND the audio is currently playing AND there is an existing audio reference
 		else if (!condition && audioIsPlaying && audioRef.current) {
-			console.log("stopping danger audio");
 			audioRef.current.pause();
 			setAudioIsPlaying(false);
 		}
@@ -51,4 +49,4 @@ const DangerSound: React.FC<DangerSoundProps> = ({ condition, audioURL }) => {
 	return <></>;
 };
 
-export default DangerSound;
+export default AudioEffect;
